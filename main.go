@@ -85,14 +85,15 @@ func main() {
 
 		// 3.2 针对这个 Case 里的每一步，写入事件
 		for _, step := range tc.Steps {
-			if step.Action == "user_message" {
+			switch step.Action {
+			case "user_message":
 				evt := buildUserEvent(step.Data)
 
 				// ---- 写入 InMemory ----
 				inmemSess, err := inmem.GetSession(ctx, key)
 				if err != nil {
 					log.Printf("⚠️ InMemory 获取 Session 失败: %v", err)
-					continue
+					break
 				}
 				err = inmem.AppendEvent(ctx, inmemSess, evt)
 				if err != nil {
@@ -109,6 +110,9 @@ func main() {
 				if err != nil {
 					log.Printf("⚠️ SQLite 追加事件失败: %v", err)
 				}
+
+			default:
+				log.Printf("⚠️ 未知的 Action 类型: %s (Case: %s)", step.Action, tc.Name)
 			}
 		}
 
