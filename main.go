@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -109,6 +110,32 @@ func main() {
 				err = sqlDB.AppendEvent(ctx, sqlSess, evt)
 				if err != nil {
 					log.Printf("⚠️ SQLite 追加事件失败: %v", err)
+				}
+			case "update_state":
+				// step.Data 的格式是 "key=value"，比如 "user_preference=vegetarian"
+				parts := strings.SplitN(step.Data, "=", 2)
+				if len(parts) != 2 {
+					log.Printf("⚠️ 无效的 State 数据格式: %s", step.Data)
+					break
+				}
+				statekey := parts[0]
+				value := parts[1]
+
+				// 构建 StateMap
+				stateMap := session.StateMap{
+					statekey: []byte(value),
+				}
+
+				// 写入 InMemory
+				err := inmem.UpdateSessionState(ctx, key, stateMap)
+				if err != nil {
+					log.Printf("⚠️ InMemory 更新 State 失败: %v", err)
+				}
+
+				// 写入 SQLite
+				err = sqlDB.UpdateSessionState(ctx, key, stateMap)
+				if err != nil {
+					log.Printf("⚠️ SQLite 更新 State 失败: %v", err)
 				}
 
 			default:
