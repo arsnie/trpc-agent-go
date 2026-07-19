@@ -24,9 +24,6 @@ func NormalizeJSON(raw string) (string, error) {
 		return "", fmt.Errorf("生成 JSON 失败: %v", err)
 	}
 	result := strings.TrimSpace(buffer.String())
-	if err != nil {
-		return "", fmt.Errorf("生成 JSON 失败: %v", err)
-	}
 	return string(result), nil
 }
 
